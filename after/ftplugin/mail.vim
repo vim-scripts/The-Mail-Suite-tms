@@ -11,8 +11,11 @@ ru mail/tms.vim
 
 setlocal foldmethod=expr
 setlocal foldexpr=Eml_fold(v:lnum)
+
+"''''''''''''''''''''''''''''''''''''"
 setlocal tw=0
 setlocal smartindent
+"''''''''''''''''''''''''''''''''''''"
 
 let b:eml_boundary = 0
 

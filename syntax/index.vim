@@ -19,7 +19,7 @@ let b:current_syntax = "index"
 " the order below is important (couldn't figure out to use nextgroup, contained etc.)
 syntax region  old           start="^\s*[rah ]*|"  end=".*|"  
 syntax region  new           start="^[^|]*n[^|]*|" end=".*|"  
-syntax match   date_error    "^.* 31 Dec 1969 16:00:00 .*|"                       
+syntax match   date_error    "^.* 31 Dec 1969 .*|"                       
 syntax region  custom_mark   start="^[^|A-Z]*[b-gi-mo-qs-z][^|A-Z]*|"   end=".*|" 
 
 highlight link custom_mark todo

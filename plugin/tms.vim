@@ -1,8 +1,8 @@
 " File:                  plugin/tms.vim
 " The Mail Suite (tms) - Send, Receive and Organize via an Editable User Infterface (EUI)
 " Copyright (C) 2004 Suresh Govindachar  <initial><last name><at><yahoo>
-" Version:               1.12
-" Date:                  August 14, 2004
+" Version:               1.13
+" Date:                  September 5, 2004
 " Initial Release:       August 11, 2004
 " Documentation:         tms.txt
 " 
@@ -189,6 +189,7 @@ sub tms_echo # {{{4
      VIM::DoCommand("$type \'$_\'");
   }
   VIM::DoCommand('echohl None');
+  return 1;
 }
 
 
@@ -221,7 +222,7 @@ EOUtils
 "
 perl << EOInit
 #BEGIN {(*STDERR = *STDOUT) || die;} # {{{4
-#line 224
+#line 225
 use diagnostics;
 use warnings;
 use strict;
@@ -401,7 +402,7 @@ augroup END
 "
 perl << EOPop
 ##!/usr/bin/perl   # {{{4
-#line 404
+#line 405
 #BEGIN {(*STDERR = *STDOUT) || die;}  
 use diagnostics;
 use warnings;
@@ -484,32 +485,53 @@ sub tms_get_mail # {{{4
            my $the_email = $mail->get($message_number);
 
            my ($subject, $from, $to, $date, $mark)=();
+           my $other_tos  = '';
+           my $now_tag='';
            $mark = 'n';
            foreach (@{$the_email})
            {
               /^\s*$/ and last;
             
-              if(/^Subject:\s*(.*)/i)
+              if(/^[\w-]+:/)
               {
-                  $subject = $1;
-                  $subject =~ s/\|/_/g;
-                  my $foo  = $subject;
-                  $foo     =~ s/\W/_/g;        # s/[^0-9a-zA-Z_]/_/g;
-                  $foo     =~ s/____*/___/g;
-                  ($foo) or $foo = '_';
-                  $foo     = lc $foo;
-                  $flnm   .= $foo; 
-              } 
-              (/^From:\s*(.*)/i) and $from = $1;
-              (/^To:\s*(.*)/i)   and $to   = $1; 
-              (/^Date:\s*(.*)/i) and $date = tms_just_the_date($1);
-              (/^Disposition-Notification-To:/i) and $mark .= 'R';
-              (/^Return-Receipt-To:/i)           and $mark .= 'R';
-              (/^Content-Type:\s*multipart/i)    and $mark .= 'a';  
-              (/^Content-Type:.*html/i)          and $mark .= 'h'; 
+                 $now_tag='';
+                 if(/^Subject:\s*(.*)/i)
+                 {
+                     $subject = $1;
+                     $subject =~ s/\s*$//;
+                     $subject =~ s/\|/_/g;
+                     my $foo  = $subject;
+                     $foo     =~ s/\W/_/g;        # s/[^0-9a-zA-Z_]/_/g;
+                     $foo     =~ s/____*/___/g;
+                     ($foo) or $foo = '_';
+                     $foo     = lc $foo;
+                     $flnm   .= $foo; 
+                     $now_tag = \$subject;
+                 } 
+                 (/^From:\s*(.*)/i) and $from = $1       and $now_tag = \$from;
+                 (/^To:\s*(.*)/i)   and $to   = $1       and $now_tag = \$to;      
+                 (/^CC:\s*(.*)/i)   and $other_tos .= $1 and $now_tag = \$other_tos; 
+                 (/^BCC:\s*(.*)/i)  and $other_tos .= $1 and $now_tag = \$other_tos; 
+                 (/^Date:\s*(.*)/i) and $date = tms_just_the_date($1) and $now_tag = \$date;
+                 (/^Disposition-Notification-To:/i)      and $mark .= 'R';
+                 (/^Return-Receipt-To:/i)                and $mark .= 'R';
+                 (/^Content-Type:\s*multipart/i)         and $mark .= 'a';
+                 (/^Content-Type:.*html/i)               and $mark .= 'h';
+              }
+              else
+              {
+                 (my $foo = $_) =~ s/\s*$//;
+                 ($now_tag) and ${$now_tag} .= $foo;
+              }
            }
            ($mark =~ s/R//g) and $mark .= 'R';
            #($flnm !~ m/\/\s*$/) or  $flnm .= '_'; 
+           $from      =~ s/\s*$//;
+           $to        =~ s/\s*$//;
+           $other_tos =~ s/\s*$//;
+
+           $other_tos = "$to $other_tos";
+           $other_tos =~ s/\|/_/g; # this has already been done for $subject
 
            my $i='';
            while (-e $flnm.$i.'.eml')
@@ -526,8 +548,8 @@ sub tms_get_mail # {{{4
      
            ($flnm =~ m/([\w.]+)$/) and $flnm = $1; # remove the leading directory path
 
-           my $entry  = $mark    .'|'. $from .'|'. $to   .'|';
-              $entry .= $subject .'|'. $date .'|'. $nick .'|'. $flnm;
+           my $entry  = $mark    .'|'. $from .'|'. $other_tos .'|';
+              $entry .= $subject .'|'. $date .'|'. $nick      .'|'. $flnm;
            $index    .= $entry . "\n";
         }
 
@@ -553,8 +575,9 @@ sub tms_get_mail # {{{4
      }
      tms_set_pop_state($pop_state_file, %pop_state_now);
    }
-   $u_got_mail and tms_echo('msghlToDo', "You just got an additional $u_got_mail messages!\n")
+   ($u_got_mail and tms_echo('msghlToDo', "You just got an additional $u_got_mail messages!\n"))
                 or tms_echo('msghlsearch', "No new messages.\n"); 
+   VIM::DoCommand("let g:tms_u_got_mail = \'$u_got_mail\'");
    return $u_got_mail;
 }
 
@@ -622,7 +645,7 @@ EOPop
 perl << EOSmtp
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 625
+#line 648
 use diagnostics;
 use warnings;
 use strict;
@@ -967,7 +990,7 @@ sub tms_send_mail_array_ref # {{{4
    }
    else
    {
-      tms_err('err', "Unable to re-open $flnm for appending:$!\n"); 
+      tms_echo('err', "Unable to re-open $flnm for appending:$!\n"); 
    }
 
    return $sent_status;
@@ -1121,10 +1144,10 @@ sub tms_clean_email_addr # {{{4
     $addr =~ s/\s*([<>,"'])\s*/$1/g;
     $addr =~ s/\s*$//;
     #add <> if required
-    $addr =~          s/^(\w[\w.-]*\@\w[\w.-]*\.\w*)/<$1/;
-    $addr =~ s/([\s,>"'])(\w[\w.-]*\@\w[\w.-]*\.\w*)/$1<$2/g;
-    $addr =~ s/(\w[\w.-]*\@\w[\w.-]*\.\w*)$/$1>/;
-    $addr =~ s/(\w[\w.-]*\@\w[\w.-]*\.\w*)([\s,<"'])/$1>$2/g;
+    $addr =~          s/^(\w[\w.=-]*\@\w[\w.-]*\.\w*)/<$1/;
+    $addr =~ s/([\s,>"'])(\w[\w.=-]*\@\w[\w.-]*\.\w*)/$1<$2/g;
+    $addr =~ s/(\w[\w.=-]*\@\w[\w.-]*\.\w*)$/$1>/;
+    $addr =~ s/(\w[\w.=-]*\@\w[\w.-]*\.\w*)([\s,<"'])/$1>$2/g;
 
     #add , if required 
     $addr =~ s/>\s*(["'<]?\w)/>,$1/g;
@@ -1163,7 +1186,7 @@ EOSmtp
 perl << EOOrganizer
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 1166
+#line 1189
 use diagnostics;
 use warnings;
 use strict;
@@ -1203,7 +1226,6 @@ sub tms_make_index # {{{4
    foreach my $what (@what_s)
    {
        my $dir       = tms_get_dir($what);  
-
        my @raw_lines = tms_get_lines($dir . '/index.raw'); 
        my $ref_raw   = tms_get_raw_hash(\@raw_lines); 
        my @files     = tms_get_file_names($dir . '/*.eml');
@@ -1467,26 +1489,41 @@ sub tms_get_entry # {{{4
 {
    my ($file) = @_;
    
-   my ($mark, $from, $to, $subject, $date) = ();
+   my ($mark, $from, $to, $subject, $date, $other_tos) = ();
    $mark = '';
+   $other_tos  = '';
 
    my $flnm =  $file;
       $flnm =~ s/^.*[\\\/]//;
 
    return  "|||||$flnm|"  unless open (IN, $file);
 
+   my $now_tag='';
    while(<IN>)
    {
+      chomp;
       /^\s*$/ and last;
-      
-      (/^Subject:\s*(.*)/i) and $subject = $1;
-      (/^From:\s*(.*)/i)    and $from    = $1;
-      (/^To:\s*(.*)/i)      and $to      = $1; 
-      (/^Date:\s*(.*)/i)    and $date    = tms_just_the_date($1);
-      (/^Content-Type:\s*multipart/i) and $mark .= 'a';  
-      (/^Content-Type:.*html/i)       and $mark .= 'h'; 
+
+      if(/^[\w-]+:/)
+      {
+         $now_tag='';
+         (/^Subject:\s*(.*)/i) and $subject    = $1 and $now_tag = \$subject;
+         (/^From:\s*(.*)/i)    and $from       = $1 and $now_tag = \$from;
+         (/^To:\s*(.*)/i)      and $to         = $1 and $now_tag = \$to; 
+         (/^CC:\s*(.*)/i)      and $other_tos .= $1 and $now_tag = \$other_tos; 
+         (/^BCC:\s*(.*)/i)     and $other_tos .= $1 and $now_tag = \$other_tos; 
+         (/^Date:\s*(.*)/i)    and $date       = tms_just_the_date($1) and $now_tag = \$date;
+         (/^Content-Type:\s*multipart/i) and $mark .= 'a';
+         (/^Content-Type:.*html/i)       and $mark .= 'h';
+      }
+      else
+      {
+         ($now_tag) and ${$now_tag} .= $_;
+      }
    }
    close IN;
+   $to = "$to $other_tos";
+   $to =~ s/\|/_/g;
 
    $subject =~ s/\|/_/g;
 
@@ -1574,7 +1611,7 @@ sub tms_get_idx_format # {{{4
         $err .= "ult=$type_ult\n";
         $err .= "penult=${$format{column}}[-2]\n";
         $err .= "Exiting\n";
-     tms_err($err);
+     tms_echo($err);
      exit; 
   }
   return %format;
@@ -1749,7 +1786,7 @@ EOOrganizer
 perl << EOWorking
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 1752
+#line 1789
 use diagnostics;
 use warnings;
 use strict; 
@@ -1948,8 +1985,9 @@ sub tms_w_do_this # {{{4
     my($to, $cc, $subject, $from, $date)=('', '', '', '', '');
     my($references, $message_id)        =('', '');
        
-      while($header =~ m/^to:\s*(.*)\s*/img) {  $to      .= $1}
-      while($header =~ m/^cc:\s*(.*)\s*/img) {  $cc      .= $1}
+      while($header =~ m/^to:[ \t]*([^\r\n]*)[ \t]*/img) {$to .= $1}
+      while($header =~ m/^cc:[ \t]*([^\r\n]*)[ \t]*/img) {$cc .= $1}
+
       ($header =~ m/^subject:\s*(.*)/im)       and $subject    = $1;
       ($header =~ m/^from:\s*(.*)\s*/im)       and $from       = $1;
       ($header =~ m/^date:\s*(.*)\s*/im)       and $date       = $1;
@@ -2457,6 +2495,7 @@ endfunction
 " TMSxxx commands "{{{3
 "
 command! -nargs=* -complete=dir  TMSMakeIndex  call s:TMSCalledFromVim('index', <f-args>) 
+command! -nargs=* -complete=dir  TMSShowIndex  call s:TMSCalledFromVim('show', <f-args>) 
 command! -nargs=* -complete=file TMSSendMail   call s:TMSCalledFromVim('send',  <f-args>) 
 command! -nargs=*                TMSGetMail    call s:TMSCalledFromVim('get',   <f-args>) 
 command! -nargs=1 -range         TMSIndexBlock call s:TMSCalledFromVim(<q-args>, <line1>, <line2>)
@@ -2467,7 +2506,7 @@ command! -nargs=1 -range         TMSIndexBlock call s:TMSCalledFromVim(<q-args>,
 perl << EOViavim
 ##!/usr/bin/perl  #{{{4 
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 2470
+#line 2509
 use diagnostics;
 use warnings;
 use strict;
@@ -2494,6 +2533,12 @@ sub tms_via_vim # {{{4
   {
      for (0 .. $#the_args){$the_args[$_] = tms_fix_directory($the_args[$_])}
      tms_make_index(@the_args);
+  }
+
+  if($what eq 'show')
+  {
+     for (0 .. $#the_args){$the_args[$_] = tms_fix_directory($the_args[$_])}
+     VIM::DoCommand("sf $_/index.idx") for (@the_args);
   }
 
   if($what eq 'send')
@@ -2536,6 +2581,7 @@ sub tms_w_idx_block_dmc # {{{4
      $dir =~ s/\w[\w. ]*\.idx$//; # keeps its slash (/) unless it is dot-dir
 
   my $where_to = ($do_what  =~ /D/) ? tms_get_dir_trash() : tms_get_destination_dir();
+     $where_to or return;
 
   for ($line1 .. $line2)
   {
@@ -2562,7 +2608,7 @@ EOViavim
 
 if (g:tms_do_not_bw_in_perl)
 
-function! s:TMS_bw_eml()
+function! TMS_bw_extension(ext)
 
    let s:last_buffer = bufnr("$")
    let s:idx = 1
@@ -2570,7 +2616,7 @@ function! s:TMS_bw_eml()
    while s:idx <= s:last_buffer
      
        let s:flnm = bufname(s:idx)
-       if(s:flnm =~ '\.eml$')
+       if(s:flnm =~ '\.'.a:ext.'$')
            execute 'silent! bw! ' . s:idx
        endif
        let s:idx = s:idx + 1
@@ -2578,7 +2624,15 @@ function! s:TMS_bw_eml()
    endwhile
 
 endfunction
-command! -nargs=0 TMSBwEml  call s:TMS_bw_eml()
+
+function! s:TMS_bw_crud()
+
+  "call TMS_bw_extension('\(eml\|idx\)')
+  call TMS_bw_extension('eml')
+  call TMS_bw_extension('idx')
+
+endfunction
+command! -nargs=0 TMSBwCrud  call s:TMS_bw_crud()
 
 endif
 

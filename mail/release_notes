@@ -1,6 +1,36 @@
 File:        mail/release_notes
 Maintainer:  Suresh Govindachar  <initial><last name><at><yahoo>
 -------------------------------------------------------------------
+-------------------------------------------------------------------
+Version 1.13 September 5, 2004
+
+ The main new feature is an illustration of filtering, and the use
+ of quickfix commands (:cn, :copen etc.) to visit mail folders which
+ have new mail. 
+
+ - mail/tms.vim
+
+    The command ':TMSExampleOfUserDefinedMap' (equivalently the 
+    map '\G') now illustrates:
+      a) filtering (meaning sorting newly arrived mail into 
+         different mail-folders based on filtering rules), and  
+      b) use of quickfix commands (:cn, :copen etc.) to visit 
+         mail-folders which have new (unread) mail.
+
+    To activate this feature:
+      a) ensure that the array @tms_filter_rule_file has the 
+         right values for you. 
+      b) uncomment the line '# tms_filter($dir_mail_home);'
+
+ - plugin/tms.vim
+
+    - Added command ':TMSShowIndex <mail folder>' to create and display 
+      the index.idx file for <mail folder>.
+    - In case you were aware of the undocumented command ':TMSBwEml', 
+      it has been replaced by ':TMSBwCrud'.
+    - The name part of emails (name@foo.com) can now contain equal (=) 
+      in addition to word chars ([a-zA-Z_0-9]), dash (-) and period (.).
+    - A few other tweaks.
 
 -------------------------------------------------------------------
 Version 1.12 August 14, 2004
