@@ -15,6 +15,7 @@ let b:did_ftplugin = 1  " Don't load another plugin for this buffer
 
 setlocal tw=0
 setlocal nowrap
+setlocal nomodeline
 
 ru mail/tms.vim
 

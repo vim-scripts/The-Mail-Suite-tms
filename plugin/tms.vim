@@ -1,8 +1,9 @@
 " File:                  plugin/tms.vim
 " The Mail Suite (tms) - Send, Receive and Organize via an Editable User Infterface (EUI)
 " Copyright (C) 2004 Suresh Govindachar  <initial><last name><at><yahoo>
-" Version:               1.11
-" Date:                  August 11, 2004
+" Version:               1.12
+" Date:                  August 14, 2004
+" Initial Release:       August 11, 2004
 " Documentation:         tms.txt
 " 
 " General Notes:                                           {{{1
@@ -95,7 +96,7 @@ endif
 "
 perl << EOUtils
 #BEGIN {(*STDERR = *STDOUT) || die;} # {{{4
-#line 98
+#line 99
 
 use diagnostics;
 use warnings;
@@ -105,7 +106,9 @@ use strict;
 
 my $debug =  VIM::Eval('g:tms_debug');  # {{{3
 # put=line(\".\")
+# normal u
 # dis =
+# normal zR
 # %g/^#line .*/ exec 'normal 6lD'|put =|normal kJ
 
 tms_debug("Compiling utilities..."); 
@@ -218,7 +221,7 @@ EOUtils
 "
 perl << EOInit
 #BEGIN {(*STDERR = *STDOUT) || die;} # {{{4
-#line 221
+#line 224
 use diagnostics;
 use warnings;
 use strict;
@@ -229,7 +232,7 @@ tms_debug("Compiling initializing...\n");  # {{{3
 
 my $tmsrc   = VIM::Eval("g:tmsrc"); 
 my %tms_rc  = tms_read_tmsrc($tmsrc);
-   %tms_rc  = tms_get_password(%tms_rc);
+#v1.12   %tms_rc  = tms_get_password(%tms_rc);
    %tms_rc  = tms_verify_dirs(%tms_rc);
 
 # %rc = tms_read_tmsrc($file) # {{{3
@@ -268,6 +271,10 @@ sub tms_read_tmsrc # {{{4
   return %rc;
 }
 
+sub tms_auto_get_password()
+{
+   %tms_rc  = tms_get_password(%tms_rc);
+}
 sub tms_reset_password()
 {
    $tms_rc{_config}{_password} = '';
@@ -384,12 +391,17 @@ sub tms_get_dir_mail_home # {{{4
 tms_debug("                   2 Done compiling initialization\n");
 EOInit
 
+augroup TMSInitialization
+  au!
+  autocmd VimEnter * :perl tms_auto_get_password();
+augroup END
+
 
 "POP {{{2
 "
 perl << EOPop
 ##!/usr/bin/perl   # {{{4
-#line 386
+#line 404
 #BEGIN {(*STDERR = *STDOUT) || die;}  
 use diagnostics;
 use warnings;
@@ -610,7 +622,7 @@ EOPop
 perl << EOSmtp
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 606
+#line 625
 use diagnostics;
 use warnings;
 use strict;
@@ -1151,7 +1163,7 @@ EOSmtp
 perl << EOOrganizer
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 1147
+#line 1166
 use diagnostics;
 use warnings;
 use strict;
@@ -1737,7 +1749,7 @@ EOOrganizer
 perl << EOWorking
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 1733
+#line 1752
 use diagnostics;
 use warnings;
 use strict; 
@@ -2455,7 +2467,7 @@ command! -nargs=1 -range         TMSIndexBlock call s:TMSCalledFromVim(<q-args>,
 perl << EOViavim
 ##!/usr/bin/perl  #{{{4 
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 2451
+#line 2470
 use diagnostics;
 use warnings;
 use strict;

@@ -2,6 +2,22 @@ File:        mail/release_notes
 Maintainer:  Suresh Govindachar  <initial><last name><at><yahoo>
 -------------------------------------------------------------------
 
+-------------------------------------------------------------------
+Version 1.12 August 14, 2004
+
+ - plugin/tms.vim
+   Added VimEnter event and related code for collecting passwords 
+   of mail servers.  (The ':perl tms_reset_password()' command 
+   introduced in version 1.11 continues to be present even if 
+   no longer required).
+
+ - ftplugin/index.vim
+   Added:  setlocal nomodeline because, for example, 'vim: ' in the 
+   subject would trigger modeline interpretation!
+
+ - after/ftplugin/mail.vim
+   Added:  setlocal smartindent
+
 
 -------------------------------------------------------------------
 Version 1.11 August 11, 2004

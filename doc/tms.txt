@@ -85,7 +85,7 @@ Users' Guide                                                 *tms-users-guide*
 
     Installation                                            *tms-installation*
 
-      Essentially, extracting tms.tar.gz into the vimfiles directory (on
+      Essentially, extract the .tar.gz file into the vimfiles directory (on
       Windows) or into the ~/.vim directory (on unix) while preserving folder
       names; then regenerate the help-tags (using the command :helptags).
 
