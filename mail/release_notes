@@ -2,6 +2,19 @@ File:        mail/release_notes
 Maintainer:  Suresh Govindachar  <initial><last name><at><yahoo>
 -------------------------------------------------------------------
 -------------------------------------------------------------------
+Version 1.14 September 8, 2004
+
+ - plugin/tms.vim
+
+    - Added requested "custom completion" feature to complete
+      the mail-folder in commands such as :TMSMakeIndex
+
+    - Hereby explicitly revealing existence of the command 
+        :TMSShowIndex <mail-folder>
+
+    - Added test of perl version (require 5.8.0)
+
+-------------------------------------------------------------------
 Version 1.13 September 5, 2004
 
  The main new feature is an illustration of filtering, and the use

@@ -1,8 +1,8 @@
 " File:                  plugin/tms.vim
-" The Mail Suite (tms) - Send, Receive and Organize via an Editable User Infterface (EUI)
+" The Mail Suite (tms) - Send, Receive and Organize via an Editable User Interface (EUI)
 " Copyright (C) 2004 Suresh Govindachar  <initial><last name><at><yahoo>
-" Version:               1.13
-" Date:                  September 5, 2004
+" Version:               1.14
+" Date:                  September 8, 2004
 " Initial Release:       August 11, 2004
 " Documentation:         tms.txt
 " 
@@ -18,11 +18,22 @@
 
 "bookkeeping {{{1
 if !has('perl')           "{{{2
+   let g:loaded_tms = 'no perl'
    finish
 endif
 if exists("loaded_tms")   
    finish
 endif
+let g:loaded_tms = 'pre test of perl version'
+perl << EOVersionTest
+   require 5.8.0;
+   VIM::DoCommand('let g:loaded_tms=\'passed test of perl version\'');
+EOVersionTest
+if (g:loaded_tms != 'passed test of perl version')
+   let g:loaded_tms = 'failed test of perl version'
+   finish
+endif
+
 "see help use-cpo-save for info on the variable save_cpo  
 let s:save_cpo = &cpo
 set cpo&vim
@@ -66,7 +77,7 @@ endif
 " This is just a first, rough attempt at organizing the code.
 " 
 " This -- meaning the development of the first (1.1) release -- was my 
-" very first perl-embedded-in-Vim code.  In the course of this developemnt
+" very first perl-embedded-in-Vim code.  In the course of this development
 " I have learnt things that can be used to better organize tms.
 " Key items in regard to reorganizing the code:
 "
@@ -96,7 +107,7 @@ endif
 "
 perl << EOUtils
 #BEGIN {(*STDERR = *STDOUT) || die;} # {{{4
-#line 99
+#line 104
 
 use diagnostics;
 use warnings;
@@ -222,7 +233,7 @@ EOUtils
 "
 perl << EOInit
 #BEGIN {(*STDERR = *STDOUT) || die;} # {{{4
-#line 225
+#line 230
 use diagnostics;
 use warnings;
 use strict;
@@ -402,7 +413,7 @@ augroup END
 "
 perl << EOPop
 ##!/usr/bin/perl   # {{{4
-#line 405
+#line 410
 #BEGIN {(*STDERR = *STDOUT) || die;}  
 use diagnostics;
 use warnings;
@@ -645,7 +656,7 @@ EOPop
 perl << EOSmtp
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 648
+#line 653
 use diagnostics;
 use warnings;
 use strict;
@@ -663,7 +674,7 @@ tms_debug("Compiling smtp...\n");  # {{{3
 #           tms_send_mail_array_ref(\@) 
 #           The argument is a reference to an array of the lines of the file
 #
-# Result  - g:tms_sent is a comman separated string of the .eml files
+# Result  - g:tms_sent is a comma separated string of the .eml files
 #           created as a result of sending each file
 #
 # Returns - perl variable that is the join with comma of the non-zero 
@@ -777,7 +788,7 @@ sub tms_switch_buffer_file  # {{{4
 #
 # Returns   - 0 or a string in the form:
 #             Fr:$boo,[To:$foo,][ToFail:$foo,][File:$flnm]
-#             The values for To and ToFail are the receipients (irrespective
+#             The values for To and ToFail are the recipients (irrespective
 #             of having been specified in the to or cc or bcc field).
 #             flnm is the name of the file used to save a copy of the
 #             sent email.  Note that flnm will not have any bcc fields.
@@ -875,7 +886,7 @@ sub tms_send_mail_array_ref # {{{4
    #$custom_header  and  $header .= "$custom_header\n";
    $custom_header and $header  = $custom_header . $header; #both headers end with a \n
    ($id =~ m/\</) and $header .="Message-ID: $id\n";
-   $header .="X-Mailer: The Mail Suite (tms) - Send, Receive and Organize via an Editable User Infterface (EUI) - by SG\n";
+   $header .="X-Mailer: The Mail Suite (tms) - Send, Receive and Organize via an Editable User Interface (EUI) - by SG\n";
 
    $header .= "\n";
  
@@ -1186,7 +1197,7 @@ EOSmtp
 perl << EOOrganizer
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 1189
+#line 1194
 use diagnostics;
 use warnings;
 use strict;
@@ -1452,7 +1463,7 @@ sub tms_update_raw_4mark # {{{4
    my ($line, $mark, $foo) = ();
    foreach $line (@idx_lines)
    {
-      ($line =~ m/^([^|]*)((\|\s*)|(\|.*\|\s*))(\w[\w ]*\.eml)\s*$/) or next; # adjusting for white space curruption
+      ($line =~ m/^([^|]*)((\|\s*)|(\|.*\|\s*))(\w[\w ]*\.eml)\s*$/) or next; # adjusting for white space corruption
       $mark =  $1;
       $file =  $5;
       ($mark and $file) or next;
@@ -1786,7 +1797,7 @@ EOOrganizer
 perl << EOWorking
 ##!/usr/bin/perl   # {{{4
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 1789
+#line 1794
 use diagnostics;
 use warnings;
 use strict; 
@@ -2300,7 +2311,7 @@ sub tms_get_destination_dir # {{{4
 #
 # Cleans up the input string (\ to /, remove consecutive /, 
 # remove trailing /).  If result is not a directory then
-# treates the string as a subdirectory of the mail home. 
+# treats the string as a subdirectory of the mail home. 
 # Tests final string to see if it is a directory.
 # Returns directory or 0.
 #
@@ -2494,11 +2505,21 @@ endfunction
 "help user-commands    
 " TMSxxx commands "{{{3
 "
-command! -nargs=* -complete=dir  TMSMakeIndex  call s:TMSCalledFromVim('index', <f-args>) 
-command! -nargs=* -complete=dir  TMSShowIndex  call s:TMSCalledFromVim('show', <f-args>) 
+command! -nargs=* -complete=custom,TMSCompleteMailFolder  TMSMakeIndex  call s:TMSCalledFromVim('index', <f-args>) 
+command! -nargs=* -complete=custom,TMSCompleteMailFolder  TMSShowIndex  call s:TMSCalledFromVim('show', <f-args>) 
 command! -nargs=* -complete=file TMSSendMail   call s:TMSCalledFromVim('send',  <f-args>) 
 command! -nargs=*                TMSGetMail    call s:TMSCalledFromVim('get',   <f-args>) 
 command! -nargs=1 -range         TMSIndexBlock call s:TMSCalledFromVim(<q-args>, <line1>, <line2>)
+
+function! TMSCompleteMailFolder(ArgLead, CmdLine, CursorPos)
+
+   let s:myarg = '"' . a:ArgLead . '"' 
+
+   let g:tms_mail_folder_completion = ''
+   exec "perl tms_complete_mail_folder " . s:myarg
+   return g:tms_mail_folder_completion
+
+endfunction
 
 
 "Via Vim {{{2
@@ -2506,7 +2527,7 @@ command! -nargs=1 -range         TMSIndexBlock call s:TMSCalledFromVim(<q-args>,
 perl << EOViavim
 ##!/usr/bin/perl  #{{{4 
 #BEGIN {(*STDERR = *STDOUT) || die;}  
-#line 2509
+#line 2524
 use diagnostics;
 use warnings;
 use strict;
@@ -2600,6 +2621,51 @@ sub tms_w_idx_block_dmc # {{{4
   ($do_what =~ /[DM]/) and VIM::DoCommand("silent $line1,$line2"."delete|update");
 }
 
+# tms_complete_mail_folder($partial) # {{{3
+#
+# Attempts to complete to mail folder
+#
+# "Return" is actually the setting of the value of 
+# the variable g:tms_mail_folder_completion
+#
+#  - The value set, if any, consists of two parts, each 
+#    part is sorted alphabetically.
+#  - The initial part, if any, is mail folder names
+#    that begin with $partial
+#  - The second part, if any, are directories that 
+#    begin with $partial
+#
+sub tms_complete_mail_folder # {{{4
+{
+   my $partial = shift;
+      $partial =~ s/\/$//;
+      $partial =~ s/\\$//;
+
+   my @candidates = ();
+   
+   push @candidates, tms_use_vim_glob("$partial*"); 
+   push @candidates, tms_use_vim_glob("$partial/*");
+   
+   my $rv_bot = '';
+   for (sort @candidates)
+   {
+      -d and $rv_bot .= "$_\n";
+   }
+   
+   my $dir_mail_home = tms_get_dir_mail_home();
+      @candidates    = tms_use_vim_glob("$dir_mail_home/$partial*");
+   
+   my $rv = '';
+   for (sort @candidates)
+   {
+      -d or next;
+      s/$dir_mail_home\///;
+      $rv .= "$_\n";
+   }
+   $rv .= $rv_bot;
+   VIM::DoCommand("let g:tms_mail_folder_completion = \'$rv\'"); 
+}
+
 tms_debug("                   7 Done compiling via vim\n");
 
 EOViavim
@@ -2644,7 +2710,7 @@ endif
 "
 ru mail/tms.vim
 
-let g:loaded_tms = 1
+let g:loaded_tms = 'all done'
 "
 "restore saved cpo     {{{2
 let &cpo = s:save_cpo
