@@ -1,0 +1,28 @@
+File:        mail/release_notes
+Maintainer:  Suresh Govindachar  <initial><last name><at><yahoo>
+-------------------------------------------------------------------
+
+
+-------------------------------------------------------------------
+Version 1.11 August 11, 2004
+
+The automated method for getting the passwords doesn't work 
+since it is executed while VIM is booting up.  So introduced 
+(in plugin/tms.vim) the perl subroutine perl tms_reset_password().
+
+INSTRUCTIONS:  
+   - The following needs to be done ONLY ONCE.
+   - It is done so that the tms has the passwords for the 
+     various mail servers.
+   - Doing it will result in the passwords being recorded in 
+     the tmsrc file in a not-easily readable form.
+
+     Issue the command:
+     :perl tms_reset_password();
+
+-------------------------------------------------------------------
+Version 1.1 August 9, 2004
+
+Initial release.
+
+-------------------------------------------------------------------

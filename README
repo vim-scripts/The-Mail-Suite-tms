@@ -1,0 +1,44 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1052
+
+____________________________________________________________
+The Mail Suite (TMS):  Send, Receive and Organize Mail
+                       via an Editable User Interface (EUI)
+                       using VIM As the Editor
+                       (on WINDOWS and on Unix)
+                       (relies on perl)
+____________________________________________________________
+Motivation    
+
+People who know VIM (especially those who have discovered
+explorer.vim) are aware of the speed, the customized form
+and, once learned, the ease of issuing commands and
+processing the results of the commands while in VIM.  This
+plugin, The Mail Suite (tms), exploits that power of VIM in
+the domain of electronic mail: for the tasks of sending,
+receiving and organizing mail.
+
+____________________________________________________________
+The Command Set (Overview) 
+
+Since The Mail Suite builds on VIM's command set, there are
+only a handful of new commands (or tasks):
+
+   - Get emails (from a POP3 server) and save in raw (.eml) format
+   - Send a buffer (even one without a file) or files as an email (via a SMTP server)
+   - Index (create a ''table of contents'' for) a folder of emails
+   - Open an email from the index (and then open the next or the previous email)
+   - Reply, Forward or Acknowledge an email
+   - Delete, Move or Copy emails
+
+____________________________________________________________
+Contrast of Interfaces for Mail Clients 
+
+Here's a contrast that makes an aspect of the power of VIM
+as a user interface clear:  other email clients need lots
+more commands than the mail-specific commands listed above
+since they need to provide a user interface;  and their
+interface is restrictive (compared to that of VIM) in regard
+to the means for navigating and manipulating the stuff on
+the screen and in not allowing keystroke customization.
+
+

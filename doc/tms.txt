@@ -1,0 +1,349 @@
+*tms.txt*  The Mail Suite (TMS):  Send, Receive and Organize           August 9, 2004
+                                  via an Editable User Interface (EUI)
+                                  using VIM As the Editor
+
+Introduction                                 |tms-introduction|
+  Motivation                                 |tms-motivation|
+  The Command Set (Overview)                 |tms-command-set-overview|
+  Contrast of Interfaces for Mail Clients    |tms-interface-contrasted|
+Users' Guide                                 |tms-users-guide|
+  Preliminaries                              |tms-preliminaries|
+    System Requirements                      |tms-system-requirements|
+    Download                                 |tms-download|
+    Installation                             |tms-installation|
+  Configuration (rc file)                    |tms-configuration|
+  Quick-Start Guide                          |tms-quick-start|
+    The Configuration (rc file)              |tms-configuration|
+    The Index File                           |tms-index-file| 
+      Columns                                |tms-columns|
+      Widths                                 |tms-widths|
+      Sort-order                             |tms-sort-order|
+    Preparing to Send Mail                   |tms-preparing-to-send-mail|
+    Mappings for a Quick Start               |tms-mappings-quick-start|
+      Leaders                                |tms-leaders|
+      The Mappings                           |tms-mappings|
+        Getting and Indexing                 |tms-getting-indexing|
+        Deleting, Moving and Copying         |tms-deleting-moving-copying|
+        Opening or Viewing                   |tms-opening-viewing| 
+        Replying, Forwarding & Acknowledging |tms-replying-forwarding-acknowledging|
+        Sending                              |tms-sending|
+  Customization                              |tms-customization|
+Migrating from Microsoft                     |tms-migrate-from-microsoft-outlook-express|
+Author                                       |tms-author|
+Claims                                       |tms-claims|
+Copyright                                    |tms-copyright|
+Disclaimer                                   |tms-disclaimer|
+
+
+Introduction                                                *tms-introduction*
+
+  Motivation                                    *tms-motivation* *tms-purpose*
+                                         *tms-vims-power-as-a-user-interfaces*
+
+    People who know VIM (especially those who have discovered explorer.vim)
+    are aware of the speed, the customized form and, once learned, the ease of
+    issuing commands and processing the results of the commands while in VIM.
+    This plugin, The Mail Suite (tms), exploits that power of VIM in the
+    domain of electronic mail: for the tasks of sending, receiving and
+    organizing mail.
+
+  The Command Set (Overview)                        *tms-command-set-overview*
+                                                       *tms-commands-overview*
+
+    Since The Mail Suite builds on VIM's command set, there are only a handful
+    of new commands (or tasks):
+
+    1. Get emails (from a POP3 server) and save in raw (.eml) format
+    2. Send a buffer (even one without a file) or files as an email (via a SMTP server)
+    3. Index (create a ''table of contents'' for) a folder of emails
+    4. Open an email from the index (and then open the next or the previous email)
+    5. Reply, Forward or Acknowledge an email
+    6. Delete, Move or Copy emails
+
+  Contrast of Interfaces for Mail Clients           *tms-interface-contrasted*
+
+    Here's a contrast that makes an aspect of the power of VIM as a user
+    interface clear:  other email clients need lots more commands than the
+    mail-specific commands listed above since they need to provide a user
+    interface;  and their interface is restrictive (compared to that of VIM)
+    in regard to the means for navigating and manipulating the stuff on the
+    screen and in not allowing keystroke customization.
+
+Users' Guide                                                 *tms-users-guide*
+
+  Preliminaries                                            *tms-preliminaries*
+
+    System Requirements                              *tms-system-requirements*
+
+      TMS has been tested on Windows 98 and Linux.  It requires VIM with perl
+      support.  The perl module libnet is required (and one easy way to
+      provide this is to have external perl too).
+
+    Download                                                    *tms-download*
+
+      http://www.sonic.net/~suresh/tms/tms.tar.gz
+
+    Installation                                            *tms-installation*
+
+      Essentially, extracting tms.tar.gz into the vimfiles directory (on
+      Windows) or into the ~/.vim directory (on unix) while preserving folder
+      names; then regenerate the help-tags (using the command :helptags).
+
+      Extracting deploys the following files below the vimfiles or .vim
+      directory:
+
+            File               |          Contents
+      -------------------------+---------------------------------------------
+       ftdetect/index.vim      | one line to detect .idx files
+       ftplugin/index.vim      | sources mail/tms.vim
+       syntax/index.vim        | simple color scheme to distinguish new, old etc.
+       plugin/tms.vim          | everything is here
+       mail/_tmsrc.example     | configuration of accounts, directories etc.
+       mail/tms.vim            | mappings for user-commands -- that's all
+       after/ftplugin/mail.vim | folding code; and sources mail/tms.vim
+       doc/tms.txt             | documentation
+
+      The help-tags can be regenerated, for example, by executing '':helptags
+      $vim\vimfiles\doc'' from within vim.
+
+  Quick-Start Guide                                          *tms-quick-start*
+
+    The Configuration (rc file)                 *tms-configuration* *tms-tmsrc*
+
+      TMS needs configuration information such as mail servers, user names
+      etc.  Such information is provided in the tmsrc file.  The default
+      location for the tmsrc file is $VIM/vimfiles/mail/_tmsrc (on windows) or
+      $HOME/.tmsrc (on unix).  A non-default location can be used by
+      specifying it in g:tmsrc.
+
+      The file mail/_tmsrc.example has comments explaining the entries in a tmsrc
+      file.
+
+    The Index File                             *tms-index-file* *tms-idx-file*
+
+      The index.idx file lists the .eml files in its directory.
+
+      Columns                                                    *tms-columns*
+
+        The index.idx file can have the following seven columns:
+
+        Column    |  Contents
+        ----------------------------------------------------------------------
+        Mark      |  [nrah] or any user string
+        From      |  The 'From' header of the mail
+        To        |  The 'To' header of the mail
+        Subject   |  The 'Subject' header of the mail
+        date-sEnt |  The 'Sent' header of the mail
+        Nick      |  The mail server the mail was sent or received from
+        fiLename  |  The name of the mail (*.eml) file
+
+        Note that the name of each column has exactly one capitalized letter.
+        If a column is to be present, at least its capitalized letter must be
+        specified.  The lower-case letters in a column heading are actually
+        ignored.
+
+        Besides the capitalized letter, other special characters in the name of
+        a column are '*', digits and sign ('-').  As explained below, the '*' is
+        used in determining the width of the column;  and the digit and sign are
+        is used in determining the order of sorting the columns.
+
+        The columns are separated by '|'.
+
+        The fiLename column must always be present and it must be the last
+        column.  There must be at least one other column.
+
+      Widths                                                      *tms-widths*
+
+        Each column is at least as wide as the distance between the
+        column-separators ('|') it is nested inside.  If an entry in the
+        column is longer than the width of the column then it is truncated.
+        If the name of the column has a '*' then it will be ensured that
+        longest entry in the column is fully visible.
+
+      Sort-order                                              *tms-sort-order*
+
+        Names of columns can have digits specifying the order in which they
+        are to be sorted.  If sort-order is specified then digits must be used
+        consecutively starting from 1.  When a column has a digit specifying
+        its sort-order, it can also have a negative sign to specify that the
+        entries in the column are sorted in the reverse order.
+
+    Preparing to Send Mail                        *tms-preparing-to-send-mail*
+                               *tms-header-for-sending-mail* *tms-send-header*
+        
+      In general, sending email involves specifying header items such as the
+      recipient, the subject etc.  Also, one must specify the SMTP server to
+      use to actually send the mail.  In the tmsrc file, one can specify a
+      default SMTP server to be used for sending email.  So the one item that
+      must be specified for sending each particular email is the
+      recipient(s). 
+
+      One prepares the stuff to be sent as shown below.  
+
+              to: [Optional Display Name ]<valid@email.addr> 
+              [cc: <value>]
+              [bcc: <value>]
+              [subject: <value>]
+              [receipt: <0 or 1>]
+              [nick: <nick name of SMTP server>]
+              [any other custom stuff for the header]
+                          <white space>
+              <the stuff one wants to email, possibly multi-para stuff>
+               
+      Note:  - Strictly speaking, what is required is not the 'to:' field as
+               such but at least one recipient;  this recipient can be
+               specified in either the 'to:', the 'cc:' or the 'bcc:' field. 
+             - The header section starts at line 1 and has no line of
+               white-space.
+             - The order of the headers (above the line of white-space) is
+               immaterial.
+             - Besides the sending nick, other tmsrc defaults (such as From:)
+               can be over-ridden in the send header. 
+
+    Mappings for a Quick Start                      *tms-mappings-quick-start*
+
+      Leaders                               *tms-leaders* *tms-mapping-leader*
+
+        The [vimfiles or ~/.vim]/mail/tms.vim file defines mappings to enable
+        a quick start toward using The Mail Suite (tms).  Some of the mappings
+        are local to mail buffers, other local to the index file and other
+        global.  All but two of the mappings are defined with local or global
+        map-leaders.  To simplify writing this quick-start guide, it is
+        written assuming that both the local and global map-leader are '/'.
+
+      The Mappings                                              *tms-mappings*
+
+        Getting and Indexing             *tms-getting-indexing* *tms-indexing* 
+
+        \g  Get mail from specified POP servers
+            Will prompt for the nicks of the POP servers [default: all servers]
+
+        \i  Index the specified folder (i.e., generate the index.idx file)
+            Will prompt for the folder (no default)
+
+        \G  Get mail from all the POP servers
+            Index the inbox
+            Display the index file of the inbox
+        
+        The index file can be very wide.  There are two (buffer-local,
+        non-leadered) mappings that help horizontally scroll the index file.
+
+        <c-l>  horizontally scroll left
+        <c-h>  horizontally scroll right
+
+        Deleting, Moving and Copying             *tms-deleting-moving-copying*
+                                                    *tms-moving* *tms-copying*
+
+        The following mappings can be invoked from either a buffer for *.eml
+        file or from a buffer of an index file.  The ''mail file'' referred to
+        below is either the file of the current .eml buffer or the .eml file
+        of the current line in the index file.
+
+        \d  delete the mail file
+        \m  move the mail file (will prompt for the destination folder)
+        \c  copy the mail file (will prompt for the destination folder)
+
+        The next three mappings are buffer-local to the index file.  They
+        accept a range (range can be specified implicitly by visually
+        selecting lines in the index file).  They act on all the .eml files of
+        the lines specified in the range.
+
+        \D  delete the mail files
+        \M  move the mail files
+        \C  copy the mail files
+
+        Keep in mind that the interface is editable:  so if the lines of
+        interest are not contiguous then one can cut and paste them to be
+        contiguous before applying the above maps!
+
+        Opening or Viewing                 *tms-opening-viewing* *tms-viewing*
+
+        Opening or viewing the mails:
+
+        \o  open the mail file of the current line in the index file 
+            in a new window.
+        \v  Only on MS-Windows machines:  view the mail file of the 
+            current line in the index file using the viewer specified 
+            for handling .eml files.
+        \n  Replace the current .eml buffer with the mail file of the line 
+            below the current line in the index file (the ''next'' line)
+        \p  Replace the current .eml buffer with the mail file of the line 
+            above the current line in the index file (the ''previous'' line)
+
+        Replying, Forwarding and Acknowledging                  
+                                       *tms-replying-forwarding-acknowledging*
+                                          *tms-forwarding* *tms-acknowledging*
+
+        There are four mappings local to the index buffer for replying,
+        replying-to-all, forwarding and acknowledging receipt of the email
+        corresponding to the current line.  Executing these mappings creates
+        a new buffer appropriately prepared for sending
+        (|tms-preparing-to-send-mail|).
+        
+        \r  reply 
+        \R  reply to all 
+        \f  forward 
+        \A  acknowledge receipt 
+       
+        Sending                                                  *tms-sending*
+        
+        Lastly, the following global map is for sending email:
+        
+        \s  Send the specified buffer or file that has been prepared 
+            for sending (|tms-preparing-to-send-mail|)
+            Will prompt for the file name [default: current buffer]
+
+  Customization                                            *tms-customization*
+
+    In using the tms, it is important to keep in mind that the full power of
+    VIM is always available.  This customization can range from eliminating
+    leaders in the mappings, to having the defaults of the mappings be other
+    than what they currently are, to adding new mappings such one that gets
+    and filters etc.  This is just one aspect of the usefulness of providing
+    an application with an Editable User Interface, and with one that is as
+    powerful as VI-Improved (|tms-interface-contrasted|).
+
+Migrating from Microsoft          *tms-migrate-from-microsoft-outlook-express*
+
+  This is ALMOST trivial:  First create a tree of folders that parallels the
+  tree in Microsoft's email client.  Then, ''drag and drop'' to create .eml
+  files in the folders.  Here's the CATCH:  the copy fails when a folder
+  contains more than one email with the same subject.
+
+Author                                                            *tms-author*
+
+Suresh Govindachar (email:  <initial><last name><at><yahoo>)
+
+Claims                                                            *tms-claims*
+
+I came up with the following on my own.
+
+    * The concept of an Editable User Interface (EUI).
+
+    * The conception of The Mail Suite (tms) as an application with an
+      Editable User Interface (EUI) using the VI-Improved (VIM) editor
+      as its user interface.
+
+    * The format of the index file and the schemes/methods for dealing with
+      its columns, their widths and their sorting.
+
+    * The development of tms.
+
+Should you have occasion to discuss or use any of the above, please be sure
+to give me due credit.  I thank you.
+
+Copyright                                                      *tms-copyright*
+
+Copyright (C) 2004 Suresh Govindachar
+
+Disclaimer                                                    *tms-disclaimer*
+
+The material provided here:  The Mail Suite (tms) related code, executable and
+information are provided as-is without any warranty -- without even the
+implied warranty of merchantability or fitness for a particular purpose.
+The author assumes no responsibility for errors or omissions or for any
+sort of damages resulting from the use of or reliance on the provided
+material.
+
+
+vim:tw=78:ft=help:norl:smartindent

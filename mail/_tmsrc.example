@@ -1,0 +1,61 @@
+# File:                  mail/_tmsrc.example
+# Copyright (C) 2004 Suresh Govindachar  <initial><last name><at><yahoo>
+# Version:               1.1
+# Date:                  August 9, 2004
+# 
+# Purpose:  To be used with the plugin (plugin/tms.vim): 
+#           The Mail Suite (tms) - Send, Receive and Organize via an 
+#           Editable User Infterface (EUI)
+#
+
+# This is just an example of the tmsrc file.
+# Create an actual tmsrc file and move it to
+# $VIM/vimfiles/mail/_tmsrc (on windows) or $HOME/.tmsrc (on unix) 
+
+# A mail-server account -- could be a pop-host, a smtp-host or both
+# Start with a nick-name 
+nick          yahoo  
+pop_host      pop.mail.yahoo.com
+smtp_host     smtp.mail.yahoo.com  
+user_id       the_man
+
+# OK to omit the next line if SMTP authentication is not required
+smtp_auth     1
+
+# The locations where mail gotten-from and sent-via 
+# this nick are to be kept -- specify the full path explicitly
+dir_inbox     d:/tms/inbox #unix example: /home/the_man/tms/inbox
+dir_sent      d:/tms/sent  #unix example: /home/the_man/tms/sent
+
+# After mail has been gotten from a pop-host, how long, in minutes, 
+# it should be left there (on the host) before being deleted;  a 
+# negative number means "for-ever"
+delete_after  -1   #<[minutes: 2*24*60] or [forever: -1]> 
+
+# The default from addresses
+from          The Man<the_man@yahoo.com> #[Optional Display Name ]<valid@email.addr> 
+
+# Optional reply_to address
+#######reply_to     [Optional Display Name ]<valid@email.addr> 
+
+# The sender's domain 
+src_domain    machine.name
+
+# End this mail-server account with "end"
+end
+
+# The default smtp_host to send from (specify its nick)
+send_via     yahoo
+
+# Specifying dir_mail_home simplifies specifying its subdirectories
+# as targets for the make index, copy and move commands
+dir_mail_home d:/tms        #unix example: /home/suresh/tms
+
+# Place where deleted emails end up
+dir_trash     d:/tms/trash
+
+# The following is used to provide each email sent with a unique
+# id of the form:  cat(message_id, time)@src_domain
+message_id    <some_string>        
+
+
